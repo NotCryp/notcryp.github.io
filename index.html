@@ -1,1125 +1,620 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campus Dining Budget Tracker</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.2s ease, color 0.2s ease;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Dining Budget Tracker</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
         }
-        /* Custom scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(148, 163, 184, 0.1);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.4);
-            border-radius: 3px;
-        }
-    </style>
-</head>
-<body id="app-body" class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+      }
+    }
+  </script>
+  
+  <!-- Chart.js for Visual Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Header Navigation -->
-    <header id="app-header" class="bg-slate-800/80 backdrop-blur-md text-white border-b border-slate-700/60 sticky top-0 z-30 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600/30 p-2 rounded-xl border border-indigo-500/40">
-                    <i data-lucide="utensils" class="w-6 h-6 text-indigo-400"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">Dining Dollars</h1>
-                    <p class="text-xs text-indigo-300">Campus Meal Budget Tracker</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center space-x-2 sm:space-x-3">
-                <!-- Theme Toggle Button -->
-                <button id="btn-theme-toggle" onclick="toggleTheme()" class="inline-flex items-center justify-center p-2 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-700/50 text-slate-300 transition-all" title="Toggle Theme">
-                    <i id="theme-icon" data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
-                </button>
-                <button onclick="openSyncModal()" class="inline-flex items-center space-x-1 sm:space-x-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition-all">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Backup & Transfer</span>
-                </button>
-                <button id="btn-open-settings" class="inline-flex items-center space-x-1 sm:space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-xl transition-all shadow-sm">
-                    <i data-lucide="settings" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Term Settings</span>
-                </button>
-            </div>
+  <style>
+    /* Custom scrollbars & minor transitions */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.6);
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
+
+  <div class="min-h-full flex flex-col">
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-800/90 backdrop-blur border-b border-slate-200 dark:border-slate-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+            <i data-lucide="utensils" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight text-slate-900 dark:text-white">Dining Dollars</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Campus Budget Tracker</p>
+          </div>
         </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Dark/Light Theme Toggle -->
+          <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Toggle Theme">
+            <i id="themeIcon" data-lucide="moon" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Sync/Data Backup Button -->
+          <button onclick="openSyncModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+            <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Backup & Sync</span>
+          </button>
+
+          <!-- Settings Button -->
+          <button onclick="openSettingsModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Term Config</span>
+          </button>
+        </div>
+      </div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- Main Body Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Top Summary Metrics Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- Current Balance Card -->
-            <div class="card-bg rounded-2xl p-4 sm:p-5 border card-border shadow-lg flex flex-col justify-between relative overflow-hidden transition-colors">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs sm:text-sm font-medium text-muted">Remaining Funds</span>
-                    <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-                        <i data-lucide="wallet" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <div id="stat-remaining-balance" class="text-2xl sm:text-3xl font-bold text-main">$0.00</div>
-                    <div id="stat-initial-balance" class="text-xs text-muted mt-1">Starting: $0.00</div>
-                </div>
-            </div>
-
-            <!-- Daily Target Card -->
-            <div class="card-bg rounded-2xl p-4 sm:p-5 border card-border shadow-lg flex flex-col justify-between relative overflow-hidden transition-colors">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs sm:text-sm font-medium text-muted">Daily Allowance</span>
-                    <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-                        <i data-lucide="calculator" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <div id="stat-daily-target" class="text-2xl sm:text-3xl font-bold text-indigo-400">$0.00</div>
-                    <div id="stat-daily-subtext" class="text-xs text-muted mt-1">Per remaining active day</div>
-                </div>
-            </div>
-
-            <!-- Pace / Status Card -->
-            <div class="card-bg rounded-2xl p-4 sm:p-5 border card-border shadow-lg flex flex-col justify-between relative overflow-hidden transition-colors">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs sm:text-sm font-medium text-muted">Spending Pace</span>
-                    <span id="pace-icon-container" class="p-2 bg-slate-700/50 text-slate-300 rounded-xl">
-                        <i data-lucide="activity" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <div id="stat-pace-status" class="text-lg sm:text-xl font-bold text-main">Calculating...</div>
-                    <div id="stat-pace-diff" class="text-xs text-muted mt-1">Average: $0.00/day</div>
-                </div>
-            </div>
-
-            <!-- Days Remaining Card -->
-            <div class="card-bg rounded-2xl p-4 sm:p-5 border card-border shadow-lg flex flex-col justify-between relative overflow-hidden transition-colors">
-                <div class="flex justify-between items-start">
-                    <span class="text-xs sm:text-sm font-medium text-muted">Days Remaining</span>
-                    <span class="p-2 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-                        <i data-lucide="calendar" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <div class="flex items-baseline gap-2">
-                        <div id="stat-days-remaining" class="text-2xl sm:text-3xl font-bold text-main">0</div>
-                        <span id="stat-days-type" class="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">Active Days</span>
-                    </div>
-                    <div id="stat-term-dates" class="text-xs text-muted mt-1 truncate">Term dates not set</div>
-                </div>
-            </div>
+      <!-- Metrics / Stats Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Target Daily Allowance Card -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <span>Daily Target</span>
+            <i data-lucide="target" class="w-4 h-4 text-indigo-500"></i>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statDailyBudget" class="text-3xl font-extrabold text-slate-900 dark:text-white">$0.00</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400">/ day</span>
+          </div>
+          <p id="statDailyDaysSubtext" class="mt-1 text-xs text-slate-500 dark:text-slate-400">Based on remaining balance</p>
         </div>
 
-        <!-- Budget Progression Bar Banner -->
-        <div class="card-bg rounded-2xl p-5 border card-border shadow-lg space-y-3 transition-colors">
-            <div class="flex flex-col sm:flex-row justify-between sm:items-center text-xs sm:text-sm gap-1">
-                <span class="font-medium text-main">Semester Progress vs Budget Consumed</span>
-                <span id="progress-text-summary" class="text-muted font-medium">0% Time Elapsed • 0% Spent</span>
-            </div>
-            
-            <div class="space-y-2">
-                <div>
-                    <div class="flex justify-between text-xs text-muted mb-1">
-                        <span>Funds Spent</span>
-                        <span id="spent-percent-label">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                        <div id="progress-funds-bar" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between text-xs text-muted mb-1">
-                        <span>Time Elapsed</span>
-                        <span id="time-percent-label">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-700/50 rounded-full h-1.5 overflow-hidden">
-                        <div id="progress-time-bar" class="bg-slate-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
+        <!-- Today's Spending & Pace Card -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <span>Spent Today</span>
+            <span id="statPaceBadge" class="px-2 py-0.5 text-xs rounded-full font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">On Track</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statSpentToday" class="text-3xl font-extrabold text-slate-900 dark:text-white">$0.00</span>
+          </div>
+          <!-- Progress bar for today -->
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
+            <div id="statTodayProgress" class="bg-indigo-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
         </div>
 
-        <!-- Main Work Area: Expense Input + Quick Log + History / Analytics -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            <!-- Left Column: Quick Log Form -->
-            <div class="lg:col-span-5 space-y-6">
-                <div class="card-bg rounded-2xl p-5 sm:p-6 border card-border shadow-lg space-y-4 transition-colors">
-                    <div class="flex items-center justify-between border-b card-border pb-3">
-                        <h2 class="font-semibold text-main flex items-center gap-2">
-                            <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i>
-                            Log Dining Expense
-                        </h2>
-                        <span id="today-total-badge" class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium px-2.5 py-1 rounded-full">
-                            Today: $0.00
-                        </span>
-                    </div>
-
-                    <!-- Quick Preset Buttons -->
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-medium text-muted">Quick Add Amount</label>
-                        <div class="grid grid-cols-4 gap-2">
-                            <button type="button" onclick="setQuickAmount(3.50)" class="px-2 py-1.5 bg-slate-700/40 hover:bg-indigo-600/30 hover:border-indigo-500/50 border card-border rounded-xl text-xs font-semibold transition-colors text-main">+$3.50</button>
-                            <button type="button" onclick="setQuickAmount(5.00)" class="px-2 py-1.5 bg-slate-700/40 hover:bg-indigo-600/30 hover:border-indigo-500/50 border card-border rounded-xl text-xs font-semibold transition-colors text-main">+$5.00</button>
-                            <button type="button" onclick="setQuickAmount(10.00)" class="px-2 py-1.5 bg-slate-700/40 hover:bg-indigo-600/30 hover:border-indigo-500/50 border card-border rounded-xl text-xs font-semibold transition-colors text-main">+$10.00</button>
-                            <button type="button" onclick="setQuickAmount(15.00)" class="px-2 py-1.5 bg-slate-700/40 hover:bg-indigo-600/30 hover:border-indigo-500/50 border card-border rounded-xl text-xs font-semibold transition-colors text-main">+$15.00</button>
-                        </div>
-                    </div>
-
-                    <form id="expense-form" class="space-y-4">
-                        <div>
-                            <label for="expense-amount" class="block text-xs font-medium text-muted mb-1">Amount ($) <span class="text-rose-400">*</span></label>
-                            <div class="relative rounded-xl shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-muted font-medium sm:text-sm">$</span>
-                                </div>
-                                <input type="number" step="0.01" min="0.01" id="expense-amount" required placeholder="0.00" class="input-bg block w-full pl-7 pr-3 py-2.5 border card-border rounded-xl text-main placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold transition-all">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-muted mb-1.5">Category</label>
-                            <div class="grid grid-cols-3 gap-2" id="category-selector">
-                                <button type="button" data-cat="Breakfast" class="cat-btn flex flex-col items-center justify-center p-2 border border-indigo-500 bg-indigo-600/20 text-indigo-300 rounded-xl text-xs font-medium transition-all">
-                                    <i data-lucide="coffee" class="w-4 h-4 mb-1"></i>
-                                    Breakfast
-                                </button>
-                                <button type="button" data-cat="Lunch" class="cat-btn flex flex-col items-center justify-center p-2 border card-border input-bg text-muted hover:bg-slate-700/40 rounded-xl text-xs font-medium transition-all">
-                                    <i data-lucide="sandwich" class="w-4 h-4 mb-1"></i>
-                                    Lunch
-                                </button>
-                                <button type="button" data-cat="Dinner" class="cat-btn flex flex-col items-center justify-center p-2 border card-border input-bg text-muted hover:bg-slate-700/40 rounded-xl text-xs font-medium transition-all">
-                                    <i data-lucide="utensils-crossed" class="w-4 h-4 mb-1"></i>
-                                    Dinner
-                                </button>
-                                <button type="button" data-cat="Snack" class="cat-btn flex flex-col items-center justify-center p-2 border card-border input-bg text-muted hover:bg-slate-700/40 rounded-xl text-xs font-medium transition-all">
-                                    <i data-lucide="apple" class="w-4 h-4 mb-1"></i>
-                                    Snack
-                                </button>
-                                <button type="button" data-cat="Drinks" class="cat-btn flex flex-col items-center justify-center p-2 border card-border input-bg text-muted hover:bg-slate-700/40 rounded-xl text-xs font-medium transition-all">
-                                    <i data-lucide="cup-soda" class="w-4 h-4 mb-1"></i>
-                                    Drinks
-                                </button>
-                                <button type="button" data-cat="Grocery/Other" class="cat-btn flex flex-col items-center justify-center p-2 border card-border input-bg text-muted hover:bg-slate-700/40 rounded-xl text-xs font-medium transition-all">
-                                    <i data-lucide="shopping-bag" class="w-4 h-4 mb-1"></i>
-                                    Market/Other
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label for="expense-date" class="block text-xs font-medium text-muted mb-1">Date</label>
-                                <input type="date" id="expense-date" required class="input-bg block w-full px-3 py-2 border card-border rounded-xl text-main text-xs focus:ring-2 focus:ring-indigo-500">
-                            </div>
-                            <div>
-                                <label for="expense-note" class="block text-xs font-medium text-muted mb-1">Location / Note</label>
-                                <input type="text" id="expense-note" placeholder="e.g. Dining Hall" class="input-bg block w-full px-3 py-2 border card-border rounded-xl text-main placeholder-slate-500 text-xs focus:ring-2 focus:ring-indigo-500">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-2">
-                            <i data-lucide="check" class="w-4 h-4"></i>
-                            Save Transaction
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Right Column: Analytics & History -->
-            <div class="lg:col-span-7 space-y-6">
-
-                <div class="card-bg rounded-2xl p-2 border card-border shadow-lg flex space-x-1 transition-colors">
-                    <button id="tab-analytics" class="flex-1 py-2 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-2">
-                        <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                        Analytics & Breakdown
-                    </button>
-                    <button id="tab-history" class="flex-1 py-2 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all text-muted hover:bg-slate-700/30 flex items-center justify-center gap-2">
-                        <i data-lucide="list" class="w-4 h-4"></i>
-                        Transaction History
-                    </button>
-                </div>
-
-                <!-- VIEW 1: Analytics Panel -->
-                <div id="view-analytics" class="space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="card-bg rounded-2xl p-4 border card-border shadow-lg flex flex-col transition-colors">
-                            <h3 class="text-xs font-bold text-muted uppercase tracking-wider mb-3">Spending by Category</h3>
-                            <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
-                                <canvas id="chart-category"></canvas>
-                            </div>
-                        </div>
-
-                        <div class="card-bg rounded-2xl p-4 border card-border shadow-lg flex flex-col justify-between transition-colors">
-                            <h3 class="text-xs font-bold text-muted uppercase tracking-wider mb-2">Category Totals</h3>
-                            <div id="category-summary-list" class="space-y-2 text-xs divide-y card-border max-h-[220px] overflow-y-auto">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-bg rounded-2xl p-4 sm:p-5 border card-border shadow-lg transition-colors">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-bold text-muted uppercase tracking-wider">Recent Daily Spending vs Allowance Line</h3>
-                            <span class="text-xs text-muted">Last 7 Days</span>
-                        </div>
-                        <div class="relative h-[220px] w-full">
-                            <canvas id="chart-daily-trend"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VIEW 2: Transaction History Panel -->
-                <div id="view-history" class="card-bg rounded-2xl border card-border shadow-lg p-4 sm:p-5 space-y-4 hidden transition-colors">
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b card-border">
-                        <div class="relative flex-1">
-                            <i data-lucide="search" class="w-4 h-4 text-muted absolute left-3 top-2.5"></i>
-                            <input type="text" id="history-search" placeholder="Search location or note..." class="input-bg w-full pl-9 pr-3 py-1.5 border card-border rounded-xl text-xs text-main placeholder-slate-500 focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <select id="history-filter-cat" class="input-bg px-3 py-1.5 border card-border rounded-xl text-xs text-main">
-                                <option value="ALL">All Categories</option>
-                                <option value="Breakfast">Breakfast</option>
-                                <option value="Lunch">Lunch</option>
-                                <option value="Dinner">Dinner</option>
-                                <option value="Snack">Snack</option>
-                                <option value="Drinks">Drinks</option>
-                                <option value="Grocery/Other">Market/Other</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="input-bg text-muted font-medium sticky top-0 border-b card-border">
-                                <tr>
-                                    <th class="py-2.5 px-3 rounded-l-lg">Date</th>
-                                    <th class="py-2.5 px-3">Category</th>
-                                    <th class="py-2.5 px-3">Note / Location</th>
-                                    <th class="py-2.5 px-3 text-right">Amount</th>
-                                    <th class="py-2.5 px-3 rounded-r-lg text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="transaction-table-body" class="divide-y card-border">
-                            </tbody>
-                        </table>
-                        <div id="empty-history-msg" class="text-center py-8 text-muted text-xs hidden">
-                            No transactions found. Start logging your meals!
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+        <!-- Remaining Account Balance Card -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <span>Remaining Balance</span>
+            <i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i>
+          </div>
+          <div class="mt-2">
+            <span id="statRemainingBalance" class="text-3xl font-extrabold text-slate-900 dark:text-white">$0.00</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Start: <span id="statInitialBalance">$0</span></span>
+            <span id="statPercentRemaining">100% left</span>
+          </div>
         </div>
 
+        <!-- Days Left in Term Card -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <span>Days Remaining</span>
+            <i data-lucide="calendar" class="w-4 h-4 text-amber-500"></i>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statDaysLeft" class="text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400">days</span>
+          </div>
+          <p id="statWeekendNotice" class="mt-1 text-xs text-slate-500 dark:text-slate-400">Ends: <span id="statEndDate">--</span></p>
+        </div>
+
+      </div>
+
+      <!-- Main Interactive Section: Quick Expense Entry + Recent Log -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Quick Entry Form (1 col on LG) -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-500"></i>
+            Log Dining Expense
+          </h2>
+
+          <form id="expenseForm" onsubmit="handleExpenseSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Meal Title / Item</label>
+              <input type="text" id="expName" placeholder="e.g. Dining Hall Lunch, Coffee" required
+                class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Amount ($)</label>
+                <input type="number" step="0.01" id="expAmount" placeholder="0.00" required
+                  class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Date</label>
+                <input type="date" id="expDate" required
+                  class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+              </div>
+            </div>
+
+            <!-- Quick Preset Amount Buttons -->
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Quick Add Preset</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button type="button" onclick="setPresetAmount(3.50)" class="py-1 px-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition">$3.50</button>
+                <button type="button" onclick="setPresetAmount(7.00)" class="py-1 px-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition">$7.00</button>
+                <button type="button" onclick="setPresetAmount(10.50)" class="py-1 px-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition">$10.50</button>
+                <button type="button" onclick="setPresetAmount(14.00)" class="py-1 px-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition">$14.00</button>
+              </div>
+            </div>
+
+            <!-- Meal Category Selector -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Category</label>
+              <div class="grid grid-cols-3 gap-2" id="categoryPillContainer">
+                <!-- Dynamically rendered via JS to guarantee clean active/inactive light-mode contrast -->
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              Add to Spending Log
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Recent Transactions List & Search (2 cols on LG) -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i data-lucide="list-ordered" class="w-5 h-5 text-indigo-500"></i>
+              Transaction History
+            </h2>
+            <div class="flex items-center gap-2">
+              <input type="text" id="searchLog" oninput="renderTransactionList()" placeholder="Search transactions..."
+                class="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-white w-full sm:w-48">
+              <button onclick="exportToCSV()" class="p-1.5 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg text-xs font-medium transition flex items-center gap-1" title="Export CSV">
+                <i data-lucide="download" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Transaction List Container -->
+          <div class="flex-1 overflow-y-auto max-h-[380px] pr-1">
+            <ul id="transactionList" class="divide-y divide-slate-100 dark:divide-slate-700/60">
+              <!-- Rendered via JS -->
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Visual Analytics: Category Breakdown & Daily Trends -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Category Doughnut Chart Card -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-500"></i>
+            Spending by Meal Category
+          </h3>
+          <div class="flex-1 min-h-[220px] flex items-center justify-center relative">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Daily Spending History Bar Chart Card -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-500"></i>
+            Daily Expense History (Last 7 Days)
+          </h3>
+          <div class="flex-1 min-h-[220px] flex items-center justify-center relative">
+            <canvas id="dailyChart"></canvas>
+          </div>
+        </div>
+
+      </div>
     </main>
 
-    <!-- BACKUP & DATA TRANSFER MODAL -->
-    <div id="sync-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-        <div class="card-bg rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border card-border animate-in fade-in zoom-in duration-200">
-            <div class="flex items-center justify-between border-b card-border pb-3">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="refresh-cw" class="w-5 h-5 text-emerald-400"></i>
-                    <h3 class="font-bold text-main text-base">Data Backup & Transfer</h3>
-                </div>
-                <button onclick="closeSyncModal()" class="text-muted hover:text-main p-1 rounded-lg">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 py-4 text-center text-xs text-slate-500 dark:text-slate-400">
+      <p>Campus Dining Account Budget Tracker • All data stored locally in browser storage</p>
+    </footer>
+  </div>
 
-            <p class="text-xs text-muted leading-relaxed">
-                Export your budget state as a code string or JSON file to transfer your transactions between devices or keep offline backups.
-            </p>
+  <!-- MODAL 1: Term & Budget Configuration Modal -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-indigo-500"></i>
+          Term Budget Settings
+        </h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
 
-            <!-- Export / Backup String -->
-            <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-main">Export Backup Code</label>
-                <div class="flex gap-2">
-                    <input type="text" id="sync-export-code" readonly class="input-bg flex-1 px-3 py-2 border card-border rounded-xl text-xs font-mono text-emerald-400 select-all focus:outline-none">
-                    <button onclick="copySyncCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-3 py-2 rounded-xl text-xs transition-colors flex items-center gap-1">
-                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
-                    </button>
-                </div>
-            </div>
-
-            <!-- Import String / JSON -->
-            <div class="space-y-1.5 pt-2 border-t card-border">
-                <label for="sync-import-code" class="text-xs font-semibold text-main">Restore or Import Data Code</label>
-                <textarea id="sync-import-code" rows="3" placeholder="Paste your backup code or JSON here..." class="input-bg w-full p-3 border card-border rounded-xl text-xs font-mono text-main placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-            </div>
-
-            <div class="flex items-center justify-between pt-2 gap-2">
-                <button onclick="downloadBackupFile()" class="text-xs text-muted hover:text-main flex items-center gap-1">
-                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Download File
-                </button>
-                <div class="flex gap-2">
-                    <button onclick="closeSyncModal()" class="px-4 py-2 bg-slate-700/50 hover:bg-slate-700 text-muted font-semibold rounded-xl text-xs transition-colors">
-                        Cancel
-                    </button>
-                    <button onclick="importSyncCode()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs transition-colors flex items-center gap-1">
-                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore Data
-                    </button>
-                </div>
-            </div>
+      <form id="settingsForm" onsubmit="saveSettings(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Starting Balance ($)</label>
+          <input type="number" step="0.01" id="cfgInitialBalance" required
+            class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Total dining dollars allocated for the term.</p>
         </div>
-    </div>
 
-    <!-- Settings & Initial Setup Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-        <div class="card-bg rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 border card-border animate-in fade-in zoom-in duration-200">
-            <div class="flex items-center justify-between border-b card-border pb-3">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i>
-                    <h3 class="font-bold text-main text-base">Dining Account Setup</h3>
-                </div>
-                <button id="btn-close-modal" class="text-muted hover:text-main p-1 rounded-lg">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <form id="settings-form" class="space-y-4">
-                <div>
-                    <label for="setting-start-balance" class="block text-xs font-semibold text-main mb-1">
-                        Starting Balance ($)
-                    </label>
-                    <p class="text-[11px] text-muted mb-1.5">Enter the total funds allocated for this term or your starting balance.</p>
-                    <input type="number" step="0.01" min="0" id="setting-start-balance" required placeholder="e.g. 1500.00" class="input-bg w-full px-3 py-2 border card-border rounded-xl text-sm font-semibold text-main focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="setting-start-date" class="block text-xs font-semibold text-main mb-1">
-                            Term Start Date
-                        </label>
-                        <input type="date" id="setting-start-date" required class="input-bg w-full px-3 py-2 border card-border rounded-xl text-xs text-main focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="setting-end-date" class="block text-xs font-semibold text-main mb-1">
-                            Term End Date
-                        </label>
-                        <input type="date" id="setting-end-date" required class="input-bg w-full px-3 py-2 border card-border rounded-xl text-xs text-main focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-
-                <!-- Weekend Inclusion Toggle -->
-                <div class="p-3 bg-slate-700/20 rounded-2xl border card-border flex items-center justify-between">
-                    <div>
-                        <label for="setting-include-weekends" class="text-xs font-semibold text-main block">
-                            Include Weekends in Budget
-                        </label>
-                        <p class="text-[11px] text-muted">If unchecked, budget divides across weekdays only (Mon–Fri).</p>
-                    </div>
-                    <input type="checkbox" id="setting-include-weekends" class="w-4 h-4 accent-indigo-600 rounded cursor-pointer">
-                </div>
-
-                <div class="bg-indigo-500/10 p-3 rounded-2xl border border-indigo-500/20 text-xs text-indigo-300 space-y-1">
-                    <div class="font-semibold flex items-center gap-1">
-                        <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-400"></i>
-                        How calculation works:
-                    </div>
-                    <p class="text-[11px] text-indigo-200">
-                        Daily Budget = (Remaining Funds / Remaining Active Days). Automatically updates every time you log a meal!
-                    </p>
-                </div>
-
-                <div class="flex gap-2 pt-2">
-                    <button type="button" id="btn-reset-data" class="w-1/3 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-semibold py-2.5 rounded-xl text-xs transition-colors">
-                        Reset All
-                    </button>
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition-colors">
-                        Save Configuration
-                    </button>
-                </div>
-            </form>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Term End Date</label>
+          <input type="date" id="cfgEndDate" required
+            class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">The last day of school/finals week before funds expire.</p>
         </div>
+
+        <!-- Weekend Inclusion Toggle -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700">
+          <div>
+            <span class="block text-sm font-semibold text-slate-800 dark:text-slate-200">Include Weekends</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400">Calculate budget across 7 days/week</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="cfgIncludeWeekends" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition">Save Settings</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- Toast Notification Box -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <!-- MODAL 2: Backup & Data Sync Modal -->
+  <div id="syncModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="arrow-right-left" class="w-5 h-5 text-indigo-500"></i>
+          Data Backup & Sync
+        </h3>
+        <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
 
-    <script>
-        // --- DATA STORE STATE & STORAGE ENGINE ---
-        const STORAGE_KEY = 'campus_dining_budget_data_v1';
+      <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        Export your data code to back up your budget or transfer it between your phone, computer, or different browsers!
+      </p>
 
-        let appState = {
-            settings: {
-                startingBalance: 1200.00,
-                startDate: '',
-                endDate: '',
-                includeWeekends: true,
-                theme: 'dark'
-            },
-            transactions: []
-        };
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Export Data Code</label>
+        <div class="flex gap-2">
+          <textarea id="syncCodeExport" readonly rows="3" class="w-full text-xs font-mono p-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none"></textarea>
+        </div>
+        <button onclick="copySyncCode()" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Code to Clipboard
+        </button>
+      </div>
 
-        const Store = {
-            getItem(key) {
-                try {
-                    return localStorage.getItem(key);
-                } catch (e) {
-                    return window.__inMemoryStore ? window.__inMemoryStore[key] : null;
-                }
-            },
-            setItem(key, value) {
-                try {
-                    localStorage.setItem(key, value);
-                } catch (e) {
-                    if (!window.__inMemoryStore) window.__inMemoryStore = {};
-                    window.__inMemoryStore[key] = value;
-                }
-            },
-            removeItem(key) {
-                try {
-                    localStorage.removeItem(key);
-                } catch (e) {
-                    if (window.__inMemoryStore) delete window.__inMemoryStore[key];
-                }
-            }
-        };
+      <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1">Import Data Code</label>
+        <textarea id="syncCodeImport" rows="3" placeholder="Paste export code here..." class="w-full text-xs font-mono p-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+        <button onclick="importSyncCode()" class="mt-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition flex items-center gap-1.5">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore / Import Data
+        </button>
+      </div>
 
-        let selectedCategory = 'Breakfast';
-        let categoryChart = null;
-        let trendChart = null;
+      <div class="flex justify-end pt-2">
+        <button type="button" onclick="closeSyncModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition">Close</button>
+      </div>
+    </div>
+  </div>
 
-        // --- THEME ENGINE ---
-        function applyTheme(theme) {
-            appState.settings.theme = theme;
-            const body = document.getElementById('app-body');
-            const header = document.getElementById('app-header');
-            const themeIcon = document.getElementById('theme-icon');
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // --- CATEGORIES DEFINITION ---
+    const CATEGORIES = [
+      { id: 'Breakfast', label: 'Breakfast', icon: 'coffee', color: '#f59e0b' },
+      { id: 'Lunch', label: 'Lunch', icon: 'sandwich', color: '#3b82f6' },
+      { id: 'Dinner', label: 'Dinner', icon: 'utensils', color: '#8b5cf6' },
+      { id: 'Snacks', label: 'Snacks', icon: 'cookie', color: '#ec4899' },
+      { id: 'Drinks', label: 'Drinks', icon: 'cup-soda', color: '#06b6d4' },
+      { id: 'Other', label: 'Other', icon: 'shopping-bag', color: '#64748b' }
+    ];
 
-            if (theme === 'light') {
-                body.className = "bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white";
-                header.className = "bg-white/80 backdrop-blur-md text-slate-800 border-b border-slate-200 sticky top-0 z-30 transition-colors";
-                themeIcon.setAttribute('data-lucide', 'moon');
-                themeIcon.className = 'w-4 h-4 text-indigo-600';
+    // --- STATE MANAGEMENT ---
+    let state = {
+      theme: 'light',
+      config: {
+        initialBalance: 800,
+        endDate: getFutureDateStr(60), // Default term: 60 days from now
+        includeWeekends: true
+      },
+      transactions: [],
+      selectedCategory: 'Lunch'
+    };
 
-                // CSS variables / utility classes dynamically mapped
-                document.querySelectorAll('.card-bg').forEach(el => el.classList.add('bg-white', 'text-slate-800'));
-                document.querySelectorAll('.card-bg').forEach(el => el.classList.remove('bg-slate-800/90'));
-                document.querySelectorAll('.card-border').forEach(el => el.classList.add('border-slate-200'));
-                document.querySelectorAll('.card-border').forEach(el => el.classList.remove('border-slate-700/80', 'border-slate-700'));
-                document.querySelectorAll('.input-bg').forEach(el => el.classList.add('bg-slate-50', 'text-slate-800'));
-                document.querySelectorAll('.input-bg').forEach(el => el.classList.remove('bg-slate-900/60', 'bg-slate-900'));
-                document.querySelectorAll('.text-main').forEach(el => el.classList.add('text-slate-800'));
-                document.querySelectorAll('.text-main').forEach(el => el.classList.remove('text-white', 'text-slate-100'));
-                document.querySelectorAll('.text-muted').forEach(el => el.classList.add('text-slate-500'));
-                document.querySelectorAll('.text-muted').forEach(el => el.classList.remove('text-slate-400'));
-            } else {
-                body.className = "bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white";
-                header.className = "bg-slate-800/80 backdrop-blur-md text-white border-b border-slate-700/60 sticky top-0 z-30 transition-colors";
-                themeIcon.setAttribute('data-lucide', 'sun');
-                themeIcon.className = 'w-4 h-4 text-amber-400';
+    let categoryChartInstance = null;
+    let dailyChartInstance = null;
 
-                document.querySelectorAll('.card-bg').forEach(el => el.classList.add('bg-slate-800/90'));
-                document.querySelectorAll('.card-bg').forEach(el => el.classList.remove('bg-white', 'text-slate-800'));
-                document.querySelectorAll('.card-border').forEach(el => el.classList.add('border-slate-700/80'));
-                document.querySelectorAll('.card-border').forEach(el => el.classList.remove('border-slate-200'));
-                document.querySelectorAll('.input-bg').forEach(el => el.classList.add('bg-slate-900/60'));
-                document.querySelectorAll('.input-bg').forEach(el => el.classList.remove('bg-slate-50', 'text-slate-800'));
-                document.querySelectorAll('.text-main').forEach(el => el.classList.add('text-white'));
-                document.querySelectorAll('.text-main').forEach(el => el.classList.remove('text-slate-800'));
-                document.querySelectorAll('.text-muted').forEach(el => el.classList.add('text-slate-400'));
-                document.querySelectorAll('.text-muted').forEach(el => el.classList.remove('text-slate-500'));
-            }
-            lucide.createIcons();
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initTheme();
+      initDefaultFormDates();
+      renderCategoryPills();
+      updateDashboard();
+      lucide.createIcons();
+    });
+
+    // Helper to compute future date strings YYYY-MM-DD
+    function getFutureDateStr(daysAhead) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysAhead);
+      return d.toISOString().split('T')[0];
+    }
+
+    function initDefaultFormDates() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('expDate').value = today;
+    }
+
+    // --- LOCAL STORAGE MANAGER ---
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('dining_app_state');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed };
+          // Ensure nested config fallbacks
+          if (state.config.includeWeekends === undefined) {
+            state.config.includeWeekends = true;
+          }
         }
+      } catch (e) {
+        console.warn('LocalStorage unavailable or failed to load:', e);
+      }
+    }
 
-        function toggleTheme() {
-            const newTheme = appState.settings.theme === 'light' ? 'dark' : 'light';
-            applyTheme(newTheme);
-            saveState();
+    function saveState() {
+      try {
+        localStorage.setItem('dining_app_state', JSON.stringify(state));
+      } catch (e) {
+        console.warn('LocalStorage failed to save:', e);
+      }
+    }
+
+    // --- THEME MANAGEMENT ---
+    function initTheme() {
+      if (state.theme === 'dark' || (!('theme' in state) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        state.theme = 'dark';
+      } else {
+        document.documentElement.classList.remove('dark');
+        state.theme = 'light';
+      }
+      updateThemeIcon();
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      if (state.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      saveState();
+      updateThemeIcon();
+      updateCharts(); // Re-render charts for color theme adaptation
+    }
+
+    function updateThemeIcon() {
+      const themeIcon = document.getElementById('themeIcon');
+      if (state.theme === 'dark') {
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+
+    // --- CALCULATIONS & STATS ---
+    function calculateDaysRemaining() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const endDateParts = state.config.endDate.split('-');
+      const endDate = new Date(endDateParts[0], endDateParts[1] - 1, endDateParts[2]);
+
+      if (endDate < today) return 0;
+
+      if (state.config.includeWeekends) {
+        const diffTime = endDate.getTime() - today.getTime();
+        return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+      } else {
+        // Exclude weekends: count Mon-Fri days remaining
+        let count = 0;
+        let cur = new Date(today);
+        while (cur <= endDate) {
+          const dayOfWeek = cur.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sun or Sat
+            count++;
+          }
+          cur.setDate(cur.getDate() + 1);
         }
-
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            setDefaultTermDates();
-            loadState();
-
-            applyTheme(appState.settings.theme || 'dark');
-            setupEventListeners();
-            
-            if (!appState.settings.startDate || !appState.settings.endDate) {
-                openModal();
-            }
-
-            document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
-            renderApp();
-        });
-
-        function setDefaultTermDates() {
-            const today = new Date();
-            const future = new Date();
-            future.setDate(today.getDate() + 90);
-
-            appState.settings.startDate = today.toISOString().split('T')[0];
-            appState.settings.endDate = future.toISOString().split('T')[0];
-            appState.settings.includeWeekends = true;
-        }
-
-        function loadState() {
-            const saved = Store.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    appState = { ...appState, ...parsed };
-                    if (appState.settings.includeWeekends === undefined) {
-                        appState.settings.includeWeekends = true;
-                    }
-                } catch (e) {
-                    console.error("Failed to parse stored state", e);
-                }
-            }
-        }
-
-        function saveState() {
-            Store.setItem(STORAGE_KEY, JSON.stringify(appState));
-            renderApp();
-        }
-
-        // --- WEEKDAY CALCULATIONS ---
-        function countDaysBetween(start, end, includeWeekends = true) {
-            let count = 0;
-            const cur = new Date(start);
-            cur.setHours(0, 0, 0, 0);
-            const endDate = new Date(end);
-            endDate.setHours(0, 0, 0, 0);
-
-            while (cur <= endDate) {
-                const dayOfWeek = cur.getDay(); // 0 = Sun, 6 = Sat
-                if (includeWeekends || (dayOfWeek !== 0 && dayOfWeek !== 6)) {
-                    count++;
-                }
-                cur.setDate(cur.getDate() + 1);
-            }
-            return count;
-        }
-
-        // --- BACKUP & SYNC ENGINE ---
-        function openSyncModal() {
-            const jsonStr = JSON.stringify(appState);
-            const b64Code = btoa(unescape(encodeURIComponent(jsonStr)));
-            document.getElementById('sync-export-code').value = b64Code;
-            document.getElementById('sync-import-code').value = '';
-            document.getElementById('sync-modal').classList.remove('hidden');
-        }
-
-        function closeSyncModal() {
-            document.getElementById('sync-modal').classList.add('hidden');
-        }
-
-        function copySyncCode() {
-            const input = document.getElementById('sync-export-code');
-            input.select();
-            document.execCommand('copy');
-            showToast('Backup code copied to clipboard!');
-        }
-
-        function importSyncCode() {
-            const raw = document.getElementById('sync-import-code').value.trim();
-            if (!raw) {
-                showToast('Please paste a code or JSON string.', 'error');
-                return;
-            }
-
-            try {
-                let parsed = null;
-                if (raw.startsWith('{')) {
-                    parsed = JSON.parse(raw);
-                } else {
-                    const decoded = decodeURIComponent(escape(atob(raw)));
-                    parsed = JSON.parse(decoded);
-                }
-
-                if (parsed && parsed.settings && Array.isArray(parsed.transactions)) {
-                    appState = parsed;
-                    saveState();
-                    applyTheme(appState.settings.theme || 'dark');
-                    closeSyncModal();
-                    showToast('Data imported successfully!');
-                } else {
-                    throw new Error('Invalid format');
-                }
-            } catch (err) {
-                showToast('Invalid backup code or JSON format.', 'error');
-            }
-        }
-
-        function downloadBackupFile() {
-            const jsonStr = JSON.stringify(appState, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dining_budget_backup_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Backup file downloaded!');
-        }
-
-        // --- EVENT LISTENERS ---
-        function setupEventListeners() {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.cat-btn').forEach(b => {
-                        b.classList.remove('border-indigo-500', 'bg-indigo-600/20', 'text-indigo-300');
-                        b.classList.add('border-slate-700', 'bg-slate-900/40', 'text-slate-400');
-                    });
-                    const target = e.currentTarget;
-                    target.classList.remove('border-slate-700', 'bg-slate-900/40', 'text-slate-400');
-                    target.classList.add('border-indigo-500', 'bg-indigo-600/20', 'text-indigo-300');
-                    selectedCategory = target.getAttribute('data-cat');
-                });
-            });
-
-            document.getElementById('expense-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const amount = parseFloat(document.getElementById('expense-amount').value);
-                const date = document.getElementById('expense-date').value;
-                const note = document.getElementById('expense-note').value.trim();
-
-                if (!amount || amount <= 0) {
-                    showToast('Please enter a valid amount.', 'error');
-                    return;
-                }
-
-                const newTx = {
-                    id: Date.now().toString(),
-                    amount: amount,
-                    category: selectedCategory,
-                    date: date,
-                    note: note || selectedCategory
-                };
-
-                appState.transactions.unshift(newTx);
-                saveState();
-
-                document.getElementById('expense-amount').value = '';
-                document.getElementById('expense-note').value = '';
-                showToast('Expense logged successfully!');
-            });
-
-            document.getElementById('btn-open-settings').addEventListener('click', openModal);
-            document.getElementById('btn-close-modal').addEventListener('click', closeModal);
-
-            document.getElementById('settings-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const startBal = parseFloat(document.getElementById('setting-start-balance').value);
-                const startD = document.getElementById('setting-start-date').value;
-                const endD = document.getElementById('setting-end-date').value;
-                const incWeekends = document.getElementById('setting-include-weekends').checked;
-
-                if (new Date(endD) <= new Date(startD)) {
-                    showToast('End date must be after start date.', 'error');
-                    return;
-                }
-
-                appState.settings.startingBalance = startBal;
-                appState.settings.startDate = startD;
-                appState.settings.endDate = endD;
-                appState.settings.includeWeekends = incWeekends;
-
-                saveState();
-                closeModal();
-                showToast('Budget settings updated.');
-            });
-
-            document.getElementById('btn-reset-data').addEventListener('click', () => {
-                if (confirm('Are you sure you want to reset all budget data and transactions?')) {
-                    Store.removeItem(STORAGE_KEY);
-                    appState.transactions = [];
-                    setDefaultTermDates();
-                    appState.settings.startingBalance = 1200.00;
-                    saveState();
-                    closeModal();
-                    showToast('Data reset complete.', 'info');
-                }
-            });
-
-            const tabAnalytics = document.getElementById('tab-analytics');
-            const tabHistory = document.getElementById('tab-history');
-            const viewAnalytics = document.getElementById('view-analytics');
-            const viewHistory = document.getElementById('view-history');
-
-            tabAnalytics.addEventListener('click', () => {
-                tabAnalytics.className = "flex-1 py-2 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-2";
-                tabHistory.className = "flex-1 py-2 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all text-muted hover:bg-slate-700/30 flex items-center justify-center gap-2";
-                viewAnalytics.classList.remove('hidden');
-                viewHistory.classList.add('hidden');
-            });
-
-            tabHistory.addEventListener('click', () => {
-                tabHistory.className = "flex-1 py-2 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all bg-indigo-600 text-white shadow-sm flex items-center justify-center gap-2";
-                tabAnalytics.className = "flex-1 py-2 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all text-muted hover:bg-slate-700/30 flex items-center justify-center gap-2";
-                viewHistory.classList.remove('hidden');
-                viewAnalytics.classList.add('hidden');
-            });
-
-            document.getElementById('history-search').addEventListener('input', renderHistoryTable);
-            document.getElementById('history-filter-cat').addEventListener('change', renderHistoryTable);
-        }
-
-        function setQuickAmount(val) {
-            document.getElementById('expense-amount').value = val.toFixed(2);
-        }
-
-        function openModal() {
-            document.getElementById('setting-start-balance').value = appState.settings.startingBalance;
-            document.getElementById('setting-start-date').value = appState.settings.startDate;
-            document.getElementById('setting-end-date').value = appState.settings.endDate;
-            document.getElementById('setting-include-weekends').checked = appState.settings.includeWeekends !== false;
-            document.getElementById('settings-modal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
-        // --- RENDER APP & CALCULATIONS ---
-        function renderApp() {
-            const totalSpent = appState.transactions.reduce((sum, tx) => sum + tx.amount, 0);
-            const remainingBalance = appState.settings.startingBalance - totalSpent;
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const startDate = new Date(appState.settings.startDate);
-            const endDate = new Date(appState.settings.endDate);
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(0, 0, 0, 0);
-
-            const incWeekends = appState.settings.includeWeekends !== false;
-
-            const totalTermDays = countDaysBetween(startDate, endDate, incWeekends);
-            
-            let daysRemaining = countDaysBetween(today > startDate ? today : startDate, endDate, incWeekends);
-            if (daysRemaining < 1) daysRemaining = 1;
-
-            let daysElapsed = countDaysBetween(startDate, today < endDate ? today : endDate, incWeekends);
-            if (daysElapsed < 0) daysElapsed = 0;
-
-            const dailyTarget = remainingBalance > 0 ? (remainingBalance / daysRemaining) : 0;
-
-            document.getElementById('stat-remaining-balance').innerText = `$${remainingBalance.toFixed(2)}`;
-            document.getElementById('stat-initial-balance').innerText = `Starting: $${appState.settings.startingBalance.toFixed(2)}`;
-            document.getElementById('stat-daily-target').innerText = `$${dailyTarget.toFixed(2)}`;
-            document.getElementById('stat-days-remaining').innerText = daysRemaining;
-            document.getElementById('stat-days-type').innerText = incWeekends ? 'All Days' : 'Weekdays Only';
-            document.getElementById('stat-daily-subtext').innerText = incWeekends ? 'Per remaining day' : 'Per remaining weekday';
-            document.getElementById('stat-term-dates').innerText = `${formatShortDate(startDate)} - ${formatShortDate(endDate)}`;
-
-            const todayStr = new Date().toISOString().split('T')[0];
-            const todaySpent = appState.transactions
-                .filter(tx => tx.date === todayStr)
-                .reduce((sum, tx) => sum + tx.amount, 0);
-            document.getElementById('today-total-badge').innerText = `Today: $${todaySpent.toFixed(2)}`;
-
-            const paceStatusEl = document.getElementById('stat-pace-status');
-            const paceDiffEl = document.getElementById('stat-pace-diff');
-            const paceIconBox = document.getElementById('pace-icon-container');
-
-            const actualAvgDaily = daysElapsed > 0 ? (totalSpent / daysElapsed) : todaySpent;
-
-            if (todaySpent > dailyTarget && dailyTarget > 0) {
-                paceStatusEl.innerText = 'Over Daily Limit';
-                paceStatusEl.className = 'text-lg sm:text-xl font-bold text-rose-400';
-                paceDiffEl.innerText = `$${(todaySpent - dailyTarget).toFixed(2)} over today's target`;
-                paceIconBox.className = 'p-2 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl';
-            } else if (actualAvgDaily <= dailyTarget) {
-                paceStatusEl.innerText = 'On Track';
-                paceStatusEl.className = 'text-lg sm:text-xl font-bold text-emerald-400';
-                paceDiffEl.innerText = `Avg spend: $${actualAvgDaily.toFixed(2)}/day`;
-                paceIconBox.className = 'p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl';
-            } else {
-                paceStatusEl.innerText = 'Slightly Ahead';
-                paceStatusEl.className = 'text-lg sm:text-xl font-bold text-amber-400';
-                paceDiffEl.innerText = `Avg spend: $${actualAvgDaily.toFixed(2)}/day`;
-                paceIconBox.className = 'p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl';
-            }
-
-            const pctSpent = Math.min(100, Math.max(0, (totalSpent / appState.settings.startingBalance) * 100));
-            const pctTime = Math.min(100, Math.max(0, (daysElapsed / Math.max(1, totalTermDays)) * 100));
-
-            document.getElementById('spent-percent-label').innerText = `${pctSpent.toFixed(1)}%`;
-            document.getElementById('time-percent-label').innerText = `${pctTime.toFixed(1)}%`;
-
-            document.getElementById('progress-funds-bar').style.width = `${pctSpent}%`;
-            document.getElementById('progress-time-bar').style.width = `${pctTime}%`;
-
-            if (pctSpent > pctTime + 10) {
-                document.getElementById('progress-funds-bar').className = "bg-rose-500 h-2.5 rounded-full transition-all duration-500";
-            } else {
-                document.getElementById('progress-funds-bar').className = "bg-indigo-500 h-2.5 rounded-full transition-all duration-500";
-            }
-
-            document.getElementById('progress-text-summary').innerText = `${pctTime.toFixed(0)}% Term Elapsed • ${pctSpent.toFixed(0)}% Budget Spent`;
-
-            applyTheme(appState.settings.theme || 'dark');
-            renderHistoryTable();
-            renderCharts(dailyTarget);
-        }
-
-        // --- RENDER TRANSACTION TABLE ---
-        function renderHistoryTable() {
-            const tbody = document.getElementById('transaction-table-body');
-            const emptyMsg = document.getElementById('empty-history-msg');
-            const searchTerm = document.getElementById('history-search').value.toLowerCase();
-            const filterCat = document.getElementById('history-filter-cat').value;
-
-            tbody.innerHTML = '';
-
-            const filtered = appState.transactions.filter(tx => {
-                const matchesSearch = tx.note.toLowerCase().includes(searchTerm) || tx.category.toLowerCase().includes(searchTerm);
-                const matchesCat = filterCat === 'ALL' || tx.category === filterCat;
-                return matchesSearch && matchesCat;
-            });
-
-            if (filtered.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                return;
-            } else {
-                emptyMsg.classList.add('hidden');
-            }
-
-            filtered.forEach(tx => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-500/10 transition-colors";
-
-                tr.innerHTML = `
-                    <td class="py-3 px-3 font-medium text-muted">${tx.date}</td>
-                    <td class="py-3 px-3">
-                        <span class="px-2 py-1 rounded-md text-[10px] font-semibold ${getCategoryBadgeClass(tx.category)}">
-                            ${tx.category}
-                        </span>
-                    </td>
-                    <td class="py-3 px-3 text-muted truncate max-w-[150px] sm:max-w-xs">${escapeHTML(tx.note)}</td>
-                    <td class="py-3 px-3 text-right font-bold text-main">$${tx.amount.toFixed(2)}</td>
-                    <td class="py-3 px-3 text-center">
-                        <button onclick="deleteTransaction('${tx.id}')" class="p-1 text-slate-400 hover:text-rose-400 rounded transition-colors" title="Delete">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            lucide.createIcons();
-        }
-
-        function deleteTransaction(id) {
-            if (confirm('Delete this transaction?')) {
-                appState.transactions = appState.transactions.filter(tx => tx.id !== id);
-                saveState();
-                showToast('Transaction removed', 'info');
-            }
-        }
-
-        // --- RENDER CHARTS ---
-        function renderCharts(dailyTarget) {
-            const isDark = appState.settings.theme === 'dark';
-            const gridColor = isDark ? '#334155' : '#e2e8f0';
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-            const chartBorderColor = isDark ? '#1e293b' : '#ffffff';
-
-            const categories = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drinks', 'Grocery/Other'];
-            const catTotals = categories.map(cat => {
-                return appState.transactions
-                    .filter(tx => tx.category === cat)
-                    .reduce((sum, tx) => sum + tx.amount, 0);
-            });
-
-            const listEl = document.getElementById('category-summary-list');
-            listEl.innerHTML = '';
-            const totalSpent = catTotals.reduce((a, b) => a + b, 0);
-
-            categories.forEach((cat, idx) => {
-                const val = catTotals[idx];
-                const pct = totalSpent > 0 ? ((val / totalSpent) * 100).toFixed(0) : 0;
-                const row = document.createElement('div');
-                row.className = "flex justify-between items-center pt-1.5";
-                row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${getCategoryColor(cat)}"></span>
-                        <span class="text-muted font-medium">${cat}</span>
-                    </div>
-                    <div class="font-semibold text-main">$${val.toFixed(2)} <span class="text-muted font-normal text-[10px]">(${pct}%)</span></div>
-                `;
-                listEl.appendChild(row);
-            });
-
-            const ctxCat = document.getElementById('chart-category').getContext('2d');
-            if (categoryChart) categoryChart.destroy();
-
-            categoryChart = new Chart(ctxCat, {
-                type: 'doughnut',
-                data: {
-                    labels: categories,
-                    datasets: [{
-                        data: catTotals,
-                        backgroundColor: [
-                            '#f59e0b',
-                            '#3b82f6',
-                            '#6366f1',
-                            '#10b981',
-                            '#ec4899',
-                            '#8b5cf6'
-                        ],
-                        borderWidth: 2,
-                        borderColor: chartBorderColor
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` ${context.label}: $${context.raw.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '65%'
-                }
-            });
-
-            const last7Days = [];
-            const last7Spend = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const dateStr = d.toISOString().split('T')[0];
-                last7Days.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-
-                const daySum = appState.transactions
-                    .filter(tx => tx.date === dateStr)
-                    .reduce((sum, tx) => sum + tx.amount, 0);
-                last7Spend.push(daySum);
-            }
-
-            const ctxTrend = document.getElementById('chart-daily-trend').getContext('2d');
-            if (trendChart) trendChart.destroy();
-
-            trendChart = new Chart(ctxTrend, {
-                type: 'bar',
-                data: {
-                    labels: last7Days,
-                    datasets: [
-                        {
-                            label: 'Daily Spent',
-                            data: last7Spend,
-                            backgroundColor: '#6366f1',
-                            borderRadius: 6
-                        },
-                        {
-                            label: 'Daily Target Line',
-                            data: Array(7).fill(dailyTarget),
-                            type: 'line',
-                            borderColor: '#ef4444',
-                            borderDash: [5, 5],
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: textColor,
-                                callback: value => '$' + value
-                            },
-                            grid: { color: gridColor }
-                        },
-                        x: {
-                            ticks: { color: textColor },
-                            grid: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
-        }
-
-        function getCategoryBadgeClass(cat) {
-            switch(cat) {
-                case 'Breakfast': return 'bg-amber-500/20 text-amber-500 border border-amber-500/30';
-                case 'Lunch': return 'bg-blue-500/20 text-blue-500 border border-blue-500/30';
-                case 'Dinner': return 'bg-indigo-500/20 text-indigo-500 border border-indigo-500/30';
-                case 'Snack': return 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30';
-                case 'Drinks': return 'bg-pink-500/20 text-pink-500 border border-pink-500/30';
-                default: return 'bg-purple-500/20 text-purple-500 border border-purple-500/30';
-            }
-        }
-
-        function getCategoryColor(cat) {
-            switch(cat) {
-                case 'Breakfast': return '#f59e0b';
-                case 'Lunch': return '#3b82f6';
-                case 'Dinner': return '#6366f1';
-                case 'Snack': return '#10b981';
-                case 'Drinks': return '#ec4899';
-                default: return '#8b5cf6';
-            }
-        }
-
-        function formatShortDate(d) {
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            let bg = 'bg-slate-800 text-white border border-slate-700';
-            if (type === 'error') bg = 'bg-rose-600 text-white';
-            if (type === 'info') bg = 'bg-indigo-600 text-white';
-
-            toast.className = `${bg} text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg transition-all transform duration-300 pointer-events-auto flex items-center gap-2`;
-            toast.innerHTML = `<span>${message}</span>`;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-    </script>
-</body>
-</html>
+        return Math.max(1, count);
+      }
+    }
+
+    function calculateSpentToday() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      return state.transactions
+        .filter(t => t.date === todayStr)
+        .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+    }
+
+    function calculateTotalSpent() {
+      return state.transactions.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+    }
+
+    // --- UI UPDATES & DASHBOARD ---
+    function updateDashboard() {
+      const totalSpent = calculateTotalSpent();
+      const remainingBalance = Math.max(0, state.config.initialBalance - totalSpent);
+      const daysLeft = calculateDaysRemaining();
+      const spentToday = calculateSpentToday();
+
+      // Daily Budget Allowance Calculation
+      const dailyBudget = daysLeft > 0 ? (remainingBalance / daysLeft) : 0;
+
+      // Update Cards
+      document.getElementById('statDailyBudget').textContent = `$${dailyBudget.toFixed(2)}`;
+      document.getElementById('statDailyDaysSubtext').textContent = state.config.includeWeekends 
+        ? `Divided over ${daysLeft} days left`
+        : `Divided over ${daysLeft} weekdays left`;  document.getElementById('statSpentToday').textContent = `$${spentToday.toFixed(2)}`; document.getElementById('statRemainingBalance').textContent = `$${remainingBalance.toFixed(2)}`; document.getElementById('statInitialBalance').textContent = `$${parseFloat(state.config.initialBalance).toFixed(0)}`; document.getElementById('statDaysLeft').textContent = daysLeft; document.getElementById('statEndDate').textContent = state.config.endDate;  document.getElementById('statWeekendNotice').textContent = state.config.includeWeekends ? `Ends: ${state.config.endDate}`
+        : `Weekdays only • Ends: ${state.config.endDate}`;
+
+      // Remaining Balance Percentage
+      const percentLeft = state.config.initialBalance > 0 
+        ? Math.max(0, Math.round((remainingBalance / state.config.initialBalance) * 100))
+        : 0;
+      document.getElementById('statPercentRemaining').textContent = `${percentLeft}\% left`;  // Today's Pace Badge & Progress Bar const paceBadge = document.getElementById('statPaceBadge'); const progressBar = document.getElementById('statTodayProgress');  let pctOfDaily = dailyBudget > 0 ? (spentToday / dailyBudget) * 100 : (spentToday > 0 ? 100 : 0); progressBar.style.width = `${Math.min(100, pctOfDaily)}%`;
+
+      if (spentToday === 0) {
+        paceBadge.textContent = "Unspent Today";
+        paceBadge.className = "px-2 py-0.5 text-xs rounded-full font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300";
+        progressBar.className = "bg-indigo-500 h-full rounded-full transition-all duration-300";
+      } else if (spentToday <= dailyBudget) {
+        paceBadge.textContent = "On Track";
+        paceBadge.className = "px-2 py-0.5 text-xs rounded-full font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300";
+        progressBar.className = "bg-emerald-500 h-full rounded-full transition-all duration-300";
+      } else {
+        paceBadge.textContent = "Over Daily Target";
+        paceBadge.className = "px-2 py-0.5 text-xs rounded-full font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300";
+        progressBar.className = "bg-rose-500 h-full rounded-full transition-all duration-300";
+      }
+
+      renderTransactionList();
+      updateCharts();
+    }
+
+    // --- CATEGORY PILLS RENDERER (Clean Light & Dark Mode) ---
+    function renderCategoryPills() {
+      const container = document.getElementById('categoryPillContainer');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const isSelected = state.selectedCategory === cat.id;
+        const activeClass = isSelected
+          ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600'
+          : 'bg-slate-100 dark:bg-slate-700/70 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600';
+
+        return `
+          <button type="button" onclick="selectCategory('${cat.id}')" class="flex flex-col items-center justify-center p-2 rounded-xl text-xs font-semibold transition ${activeClass}">
+            <i data-lucide="${cat.icon}" class="w-4 h-4 mb-1"></i>
+            <span>${cat.label}</span>
+          </button>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function selectCategory(catId) {
+      state.selectedCategory = catId;
+      renderCategoryPills();
+    }
+
+    function setPresetAmount(val) {
+      document.getElementById('expAmount').value = val.toFixed(2);
+    }
+
+    // --- EXPENSE HANDLERS ---
+    function handleExpenseSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('expName').value.trim();
+      const amount = parseFloat(document.getElementById('expAmount').value);
+      const date = document.getElementById('expDate').value;
+
+      if (!name || isNaN(amount) || amount <= 0 || !date) return;
+
+      const newTransaction = {
+        id: Date.now().toString(),
+        name,
+        amount,
+        date,
+        category: state.selectedCategory || 'Lunch'
+      };
+
+      state.transactions.unshift(newTransaction); // Add to start
+      saveState();
+
+      // Reset form title and amount
+      document.getElementById('expName').value = '';
+      document.getElementById('expAmount').value = '';
+
+      updateDashboard();
+    }
+
+    function deleteTransaction(id) {
+      state.transactions = state.transactions.filter(t => t.id !== id);
+      saveState();
+      updateDashboard();
+    }
+
+    function renderTransactionList() {
+      const container = document.getElementById('transactionList');
+      const searchTerm = (document.getElementById('searchLog').value || '').toLowerCase();
+
+      const filtered = state.transactions.filter(t => 
+        t.name.toLowerCase().includes(searchTerm) || 
+        t.category.toLowerCase().includes(searchTerm) ||
+        t.date.includes(searchTerm)
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-slate-400 dark
